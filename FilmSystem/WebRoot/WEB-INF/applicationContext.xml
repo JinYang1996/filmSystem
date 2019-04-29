@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:jee="http://www.springframework.org/schema/jee" 
+       xmlns:jaxws="http://cxf.apache.org/jaxws"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util" 
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/jdbc 
+        http://www.springframework.org/schema/jdbc/spring-jdbc-4.0.xsd
+        http://www.springframework.org/schema/jee 
+        http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+        http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util-4.0.xsd
+        http://www.springframework.org/schema/task 
+        http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://cxf.apache.org/jaxws
+        http://cxf.apache.org/schemas/jaxws.xsd"
+       default-lazy-init="true">
+         
+       <!-- 扫描com包下所有使用注解的类型 -->
+       <context:component-scan base-package="com" />	
+       
+       <!-- 加载配置文件属性 -->
+       <context:property-placeholder location="classpath:jdbc.properties"/>
+    
+       <!-- 数据连接池 -->
+       <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+            <property name="driverClassName" value="${jdbc.driver}" />
+		    <property name="url" value="${jdbc.url}" />
+		    <property name="username" value="${jdbc.username}" />
+		    <property name="password" value="${jdbc.password}" />
+       </bean>
+       <!-- 配置SqlSessionFactory对象 -->
+       <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 数据库连接池 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动配置别名 -->
+		<property name="typeAliasesPackage" value="com.neusoft"></property>
+		<!-- 加载mybatis的全局配置文件 -->
+		<property name="configLocation" value="classpath:sqlMapConfig.xml" />
+		
+		
+		<!-- 配置插件 -->
+		<!-- <property name="plugins">
+    		<array>
+    		    分页插件
+      			<bean class="com.github.pagehelper.PageInterceptor">
+       				 <property name="properties">
+         			 config params as the following
+	          			<value>
+	           				 param1=oracle
+	          			</value>
+       				 </property>
+      			</bean>
+    		</array>
+  		</property> -->
+	</bean>
+   
+    <!-- mapper扫描器 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!-- 扫描包路径，如果需要扫描多个包，中间使用半角逗号隔开 -->
+		<property name="basePackage" value="com.neusoft.modules.*.mapper,com.neusoft.modules.front.*.mapper"></property>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+	
+	<!-- task任务扫描注解 -->
+	<task:executor id="executor" pool-size="5" />  
+	<task:scheduler id="scheduler" pool-size="10" />  
+	<task:annotation-driven executor="executor" scheduler="scheduler" />
+	
+	<context:annotation-config/>
+		<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/>
+		<context:component-scan base-package="com.neusoft.common.task"/>
+
+</beans>

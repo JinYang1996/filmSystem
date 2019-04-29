@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.applyArrange.mapper.ApplyArrangeMapper">
+	<sql id="ApplyArrangeColumns">
+		a.id AS "id",
+		a.film_id AS "filmDetail.id",
+		b.title AS "filmDetail.title",
+		b.picture AS "filmDetail.picture",
+		a.apply_time AS "applyTime",
+		a.review_status AS "reviewStatus",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="ApplyArrangeJoins">
+		LEFT JOIN film_detail b ON a.film_id=b.id
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="ApplyArrange">
+		SELECT
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+	</select>
+	
+	<!-- 条件查询 -->
+	<select id="selApplyByTerm" parameterType="ApplyArrange" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.apply_time&gt;DATE_FORMAT(now(),'%Y-%m-%d')
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title LIKE CONCAT('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="applyTime != null and applyTime != ''">
+			AND a.apply_time=date_format(#{applyTime},'%Y-%m-%d')
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status=#{reviewStatus}
+		</if>
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 条件查询数量 -->
+	<select id="selApplyByTermCount" parameterType="ApplyArrange" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.apply_time&gt;DATE_FORMAT(now(),'%Y-%m-%d')
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title LIKE CONCAT('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="applyTime != null and applyTime != ''">
+			AND a.apply_time=date_format(#{applyTime},'%Y-%m-%d')
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status=#{reviewStatus}
+		</if>
+		ORDER BY a.create_date desc
+	</select>
+	
+	<!-- 超级管理员条件查询 -->
+	<select id="selApplyByTermSuper" parameterType="ApplyArrange" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title LIKE CONCAT('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="applyTime != null and applyTime != ''">
+			AND a.apply_time=date_format(#{applyTime},'%Y-%m-%d')
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status=#{reviewStatus}
+		</if>
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 超级管理员条件查询数量 -->
+	<select id="selApplyByTermCountSuper" parameterType="ApplyArrange" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title LIKE CONCAT('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="applyTime != null and applyTime != ''">
+			AND a.apply_time=date_format(#{applyTime},'%Y-%m-%d')
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status=#{reviewStatus}
+		</if>
+		ORDER BY a.create_date desc
+	</select>
+	
+	<!-- 根据影片id和申请日期查询未审核申请安排列表
+	<select id="selApplyByFilmId" resultType="applyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.review_status='1'
+		AND a.film_id=#{0}
+		AND a.apply_time=#{1}
+	</select> -->
+	
+	<!-- 根据影片id和申请日期查询申请安排列表 -->
+	<select id="selApplyByFilmId" resultType="applyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.film_id=#{0}
+		AND a.apply_time=#{1}
+	</select>
+	
+	<!-- 修改审核状态 -->
+	<select id="updReviewStatus">
+		UPDATE apply_arrange SET review_status=#{0} WHERE id=#{1}
+	</select>
+	
+	<update id="updateDelFlag" parameterType="ApplyArrange">
+		UPDATE apply_arrange SET del_flag=#{delFlag},update_date=now() WHERE id=#{id}
+	</update>
+	
+	<insert id="insert" parameterType="ApplyArrange">
+		INSERT INTO apply_arrange (
+			id,
+			film_id,
+			apply_time,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{filmDetail.id},
+			#{applyTime},
+			#{createBy},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+	<!-- 修改审核状态 -->
+	<update id="updApplyArrangeStatus">
+		UPDATE apply_arrange
+		SET ApplyArrange_status=#{0},update_by=#{2},update_date=now()
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 根据申请日期查询申请信息 -->
+	<select id="selApplyByTime" parameterType="ApplyArrange" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.apply_time=date_format(#{applyTime},'%Y-%m-%d')
+		AND a.film_id=#{filmDetail.id}
+	</select>
+	
+	<!-- 将今天以前没有审核的影厅安排申请清除 -->
+	<select id="selBeforeToday" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND DATE_FORMAT(a.apply_time,'%Y-%m-%d')&lt;=now()
+		AND a.review_status='1'
+	</select>
+	
+	<update id="updRemarks">
+		UPDATE apply_arrange
+		SET remarks=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 查询所有的申请 -->
+	<select id="selApplyByUserAndFilmId" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.create_by=#{0}
+		AND a.film_id=#{1}
+	</select>
+	
+	<!-- 查询指定用户下的申请 -->
+	<select id="selApplyByUser" resultType="ApplyArrange">
+		SELECT 
+			<include refid="ApplyArrangeColumns"/>
+		FROM apply_arrange a
+			<include refid="ApplyArrangeJoins"/>
+		WHERE a.del_flag='0'
+		AND a.create_by=#{0}
+		ORDER BY a.create_date DESC
+	</select>
+</mapper>

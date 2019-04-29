@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.collect.mapper.CollectMapper">
+	<sql id="collectColumns">
+		a.id AS "id",
+		a.film_id AS "filmDetail.id",
+		b.picture AS "filmDetail.picture",
+		b.title AS "filmDetail.title",
+		a.collect_people AS "account.id",
+		c.account AS "account.account",
+		c.username AS "account.userName",
+		a.collect_time AS "collectTime",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="collectJoins">
+		INNER JOIN film_detail b ON a.film_id=b.id
+		INNER JOIN account c ON a.collect_people=c.id
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="Collect">
+		SELECT
+			<include refid="collectColumns"/>
+		FROM collect a
+			<include refid="collectJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="Collect">
+		SELECT 
+			<include refid="collectColumns"/>
+		FROM collect a
+			<include refid="collectJoins"/>
+		WHERE a.del_flag='0'
+	</select>
+	
+	<!-- 根据用户id和影片id查找收藏信息 -->
+	<select id="selByFilmAccount" resultType="Collect">
+		SELECT 
+			<include refid="collectColumns"/>
+		FROM collect a
+			<include refid="collectJoins"/>
+		WHERE a.film_id=#{0}
+		AND a.collect_people=#{1}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 根据用户id查找所有的收藏列表 -->
+	<select id="selByAccount" resultType="Collect">
+		SELECT 
+			<include refid="collectColumns"/>
+		FROM collect a
+			<include refid="collectJoins"/>
+		WHERE a.collect_people=#{0}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 删除收藏信息 -->
+	<update id="updDelFlag">
+		UPDATE collect
+		SET del_flag=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<insert id="insert" parameterType="Collect">
+		INSERT INTO collect (
+			id,
+			film_id,
+			collect_people,
+			collect_time
+		) VALUES (
+			#{id},
+			#{filmDetail.id},
+			#{account.id},
+			now()
+		)
+	</insert>
+	
+</mapper>

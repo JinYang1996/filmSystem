@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.front.fightTicket.mapper.FightTicketMapper">
+	<sql id="FightTicketColumns">
+		a.id AS "id",
+		a.before_order AS "beforeOrder",
+		a.fight_people AS "fightPeople",
+		a.film_id AS "filmDetail.id",
+		b.title AS "filmDetail.title",
+		b.picture AS "filmDetail.picture",
+		b.language AS "filmDetail.language",
+		a.arrange_id AS "theaterArrange.id",
+		c.release_time AS "theaterArrange.releaseTime",
+		c.start_time AS "theaterArrange.startTime",
+		c.end_time AS "theaterArrange.endTime",
+		d.hall_name AS "theaterArrange.videoHall.hallName",
+		a.seat_ids AS "seatIds",
+		a.type AS "type",
+		a.fight_status AS "fightStatus",
+		a.price AS "price",
+		a.original_price AS "originalPrice",
+		a.ticket_count AS "ticketCount",
+		a.usedScore AS "usedScore",
+		a.favorable AS "favorable",
+		a.pay_status AS "payStatus",
+		a.review_status AS "reviewStatus",
+		a.watch_status AS "watchStatus",
+		a.watch_code AS "watchCode",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="FightTicketJoins">
+		INNER JOIN film_detail b ON a.film_id=b.id
+		INNER JOIN theater_arrange c ON a.arrange_id=c.id
+		INNER JOIN video_hall d ON c.video_hall=d.id
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="FightTicket">
+		SELECT
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.del_flag='0' OR a.del_flag='2'
+	</select>
+	
+	<select id="selPageFilm" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a WHERE a.del_flag='0' limit #{0},#{1}
+	</select>
+	
+	<select id="selAllCount" resultType="int">
+		SELECT count(*) FROM fight_ticket a
+		WHERE a.del_flag='0'
+	</select>
+	
+	<!-- 根据影厅安排id查找拼单的座位信息 -->
+	<select id="selFightByArrange" parameterType="String" resultType="FightTicket">
+		SELECT
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.type='1' AND a.review_status&lt;&gt;'3') 
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='2' AND a.type='1' AND a.review_status&lt;&gt;'3')
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.type='2' AND a.review_status&lt;&gt;'3') 
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='2' AND a.type='2' AND a.review_status&lt;&gt;'3')
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.type='3' AND a.review_status&lt;&gt;'0') 
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.type='4' AND a.review_status&lt;&gt;'0')
+	</select>
+	
+	<!-- 查询已支付的有效的订单信息 -->
+	<select id="selAvailableFight" parameterType="String" resultType="FightTicket">
+		SELECT
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.pay_status='0' AND a.type='1')
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.pay_status='0' AND a.type='2')
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.pay_status='0' AND a.type='3')
+		OR (a.arrange_id = #{arrangeId} AND a.del_flag='0' AND a.pay_status='0' AND a.type='4')
+	</select>
+	
+	<!-- 根据拼单信息id修改该条记录的支付情况 -->
+	<update id="updPayStatus" parameterType="String">
+		UPDATE fight_ticket 
+		SET pay_status='0'
+		WHERE id=#{fightId}
+	</update>
+	
+	<!-- 根据拼单信息id修改该条记录的支付情况 -->
+	<update id="updReturnPayStatus" parameterType="String">
+		UPDATE fight_ticket 
+		SET pay_status='2'
+		WHERE id=#{fightId}
+	</update>
+	
+	<!-- 根据使用积分数更新最终实付钱数 -->
+	<update id="updPrice">
+		UPDATE fight_ticket
+		SET price=#{0},usedScore=#{2}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 更改订单状态 -->
+	<update id="updDelFlag">
+		UPDATE fight_ticket 
+		SET del_flag=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 查询被占用的订单 -->
+	<select id="selDelFlag" resultType="FightTicket">
+		SELECT
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='2'
+	</select>
+	
+	<!-- 查询该用户下的所有订单 -->
+	<select id="selAllByPerson" parameterType="FightTicket" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.fight_people=#{fightPeople}
+		AND a.del_flag&lt;&gt;'1'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="payStatus != null and payStatus != ''">
+			AND a.pay_status = #{payStatus}
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type = #{type}
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status = #{reviewStatus}
+		</if>
+		<if test="theaterArrange != null and theaterArrange != ''">
+			<if test="theaterArrange.releaseTime != null and theaterArrange.releaseTime != ''">
+				AND c.release_time = #{theaterArrange.releaseTime}
+			</if>
+		</if>
+		ORDER BY a.create_date desc
+	</select>
+	
+	<!-- 取消订单 -->
+	<update id="updDel">
+		UPDATE fight_ticket
+		SET del_flag='1'
+		WHERE id=#{id}
+	</update>
+	
+	<insert id="insert" parameterType="FightTicket">
+		INSERT INTO fight_ticket (
+			id,
+			before_order,
+			fight_people,
+			film_id,
+			arrange_id,
+			seat_ids,
+			type,
+			fight_status,
+			price,
+			original_price,
+			ticket_count,
+			usedScore,
+			favorable,
+			pay_status,
+			review_status,
+			create_by,
+			create_date,
+			del_flag
+		)VALUES (
+			#{id},
+			#{beforeOrder},
+			#{fightPeople},
+			#{filmDetail.id},
+			#{theaterArrange.id},
+			#{seatIds},
+			#{type},
+			#{fightStatus},
+			#{price},
+			#{originalPrice},
+			#{ticketCount},
+			#{usedScore},
+			#{favorable},
+			#{payStatus},
+			#{reviewStatus},
+			#{createBy},
+			#{createDate},
+			#{delFlag}
+		)
+	</insert>
+	
+	<!-- 查询超时订单 -->
+	<select id="selTimeOut" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+ 		WHERE date_add(a.create_date,interval 15 minute)&lt;now() 
+ 		AND a.pay_status='1' 
+		AND a.del_flag='2'
+	</select>
+	
+	<!-- 查询影片放映完后的订单信息 -->
+	<select id="selWatchedFilm" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE DATE_FORMAT(concat(c.release_time," ",c.end_time),'%Y-%m-%d %H:%i:%s')&lt;now() 
+		and a.del_flag='0' 
+		and a.pay_status='0'
+		and a.review_status='0'
+	</select>
+	
+	<!-- 修改订单观看状态 -->
+	<update id="updWatchStatus">
+		UPDATE fight_ticket
+		SET watch_status='0'
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 修改审核状态 -->
+	<select id="updReviewStatus">
+		UPDATE fight_ticket
+		SET review_status=#{0},update_by=#{1},update_date=now()
+		WHERE id=#{2}
+	</select>
+	
+	<!-- 修改拼单状态 -->
+	<update id="updFightStatus" parameterType="fightTicket">
+		UPDATE fight_ticket
+		SET fight_status=#{fightStatus}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 查询发起拼单的订单信息 -->
+	<select id="selWhichFight" resultType="fightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE (a.arrange_id=#{arrangeId} AND a.type='1' AND a.fight_status='1' AND a.del_flag='0')
+		OR(a.arrange_id=#{arrangeId} AND a.type='1' AND a.fight_status='2' AND a.del_flag='0')
+		OR(a.arrange_id=#{arrangeId} AND a.type='3' AND a.fight_status='0' AND a.del_flag='0')
+		OR(a.arrange_id=#{arrangeId} AND a.type='3' AND a.fight_status='2' AND a.del_flag='0')
+	</select>
+	
+	<!-- 添加观影码 -->
+	<update id="updWatchCode">
+		UPDATE fight_ticket
+		SET watch_code=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 查询影片开始前两小时内拼单人数还未到达指定比例的订单信息 -->
+	<select id="selBeforeTwoHour" resultType="fightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE date_sub(DATE_FORMAT(concat(c.release_time," ",c.start_time),'%Y-%m-%d %H:%i:%s'),interval 2 hour)&lt;now()
+		AND a.fight_status='1' 
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 写明备注信息 -->
+	<update id="updRemarks">
+		UPDATE fight_ticket
+		SET remarks=#{0},update_by=#{1},update_date=now()
+		WHERE id=#{2}
+	</update>
+	
+	<!-- 修改订单最终状态 -->
+	<update id="updFinalType">
+		UPDATE fight_ticket
+		SET final_type=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 查询影片放映1小时前还未审核的订单信息 -->
+	<select id="selBeforeOneHour" resultType="fightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE date_sub(DATE_FORMAT(concat(c.release_time," ",c.start_time),'%Y-%m-%d %H:%i:%s'),interval 1 hour)&lt;now()
+		AND a.review_status='1' 
+		AND a.del_flag='0' 
+		AND a.pay_status='0'
+		AND a.fight_status='1'
+	</select>
+	
+	<!-- 查询影片放映1小时前还未审核的取消的订单信息 -->
+	<select id="selBeforeOneHourCancel" resultType="fightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE date_sub(DATE_FORMAT(concat(c.release_time," ",c.start_time),'%Y-%m-%d %H:%i:%s'),interval 1 hour)&lt;now()
+		AND a.review_status='1' 
+		AND a.del_flag='0' 
+		AND a.pay_status='0'
+		AND a.fight_status='0'
+	</select>
+	
+	<!-- 查询拼单下参与拼单的订单信息 -->
+	<select id="selAttendFight" resultType="fightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE (a.arrange_id=#{arrangeId} AND a.type='2' AND a.del_flag='0' AND a.fight_status&lt;&gt;'0')
+		OR(a.arrange_id=#{arrangeId} AND a.type='4' AND a.del_flag='0' AND a.pay_status='0')
+	</select>
+	
+	<!-- 查找拼单信息 根据发布的时间排序 -->
+	<select id="selFightByCreateDate" parameterType="fightTicket" resultType="fightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.type='1' 
+		AND a.fight_status='1' 
+		AND a.pay_status='0' 
+		AND a.review_status&lt;&gt;'3' 
+		AND a.del_flag='0' 
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 查询拼单信息的总条数 -->
+	<select id="selFightCount" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.type='1' 
+		AND a.fight_status='1' 
+		AND a.pay_status='0' 
+		AND a.review_status&lt;&gt;'3' 
+		AND a.del_flag='0' 
+	</select>
+	
+	<!-- 查询所有订单 -->
+	<select id="selAllByAdmin" parameterType="FightTicket" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE (a.del_flag='0'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="payStatus != null and payStatus != ''">
+			AND a.pay_status = #{payStatus}
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type = #{type}
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status = #{reviewStatus}
+		</if>
+		<if test="theaterArrange != null and theaterArrange != ''">
+			<if test="theaterArrange.releaseTime != null and theaterArrange.releaseTime != ''">
+				AND c.release_time = #{theaterArrange.releaseTime}
+			</if>
+		</if>
+		) OR (a.del_flag='2'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="payStatus != null and payStatus != ''">
+			AND a.pay_status = #{payStatus}
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type = #{type}
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status = #{reviewStatus}
+		</if>
+		<if test="theaterArrange != null and theaterArrange != ''">
+			<if test="theaterArrange.releaseTime != null and theaterArrange.releaseTime != ''">
+				AND c.release_time = #{theaterArrange.releaseTime}
+			</if>
+		</if>
+		)
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 查询所有订单的数量 -->
+	<select id="selAllByAdminCount" parameterType="FightTicket" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE (a.del_flag='0'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="payStatus != null and payStatus != ''">
+			AND a.pay_status = #{payStatus}
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type = #{type}
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status = #{reviewStatus}
+		</if>
+		<if test="theaterArrange != null and theaterArrange != ''">
+			<if test="theaterArrange.releaseTime != null and theaterArrange.releaseTime != ''">
+				AND c.release_time = #{theaterArrange.releaseTime}
+			</if>
+		</if>
+		) OR (a.del_flag='2'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="payStatus != null and payStatus != ''">
+			AND a.pay_status = #{payStatus}
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type = #{type}
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status = #{reviewStatus}
+		</if>
+		<if test="theaterArrange != null and theaterArrange != ''">
+			<if test="theaterArrange.releaseTime != null and theaterArrange.releaseTime != ''">
+				AND c.release_time = #{theaterArrange.releaseTime}
+			</if>
+		</if>
+		)
+	</select>
+	
+	<!-- 查询已观看的订单信息 -->
+	<select id="selWatched" resultType="FightTicket">
+		SELECT 
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.watch_status='2'
+	</select>
+	
+	<!-- 查询订单信息 -->
+	<select id="getTicket" parameterType="String" resultType="FightTicket">
+		SELECT
+			<include refid="FightTicketColumns"/>
+		FROM fight_ticket a
+			<include refid="FightTicketJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+</mapper>

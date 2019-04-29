@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.evaluate.mapper.EvaluateMapper">
+	<sql id="EvaluateColumns">
+		a.id AS "id",
+		a.film_id AS "filmDetail.id",
+		a.evaluate_people AS "account.id",
+		c.account AS "account.account",
+		c.username AS "account.userName",
+		b.picture AS "filmDetail.picture",
+		b.title AS "filmDetail.title",
+		a.content AS "content",
+		a.review_status AS "reviewStatus",
+		a.likes AS "likes",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="EvaluateJoins">
+		INNER JOIN film_detail b ON a.film_id=b.id
+		INNER JOIN account c ON a.evaluate_people=c.id
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="Evaluate">
+		SELECT
+			<include refid="EvaluateColumns"/>
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+		AND a.review_status&lt;&gt;'2'
+	</select>
+	
+	<select id="selAll" resultType="Evaluate">
+		SELECT 
+			<include refid="EvaluateColumns"/>
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.del_flag='0'
+	</select>
+	
+	<update id="updateDelFlag" parameterType="Evaluate">
+		UPDATE Evaluate SET del_flag=#{delFlag} WHERE id=#{id}
+	</update>
+	
+	<!-- 修改del_flag -->
+	<update id="updDelFlag">
+		UPDATE Evaluate
+		SET del_flag=#{delFlag}
+		WHERE id=#{id}
+	</update>
+	
+	<insert id="insert" parameterType="Evaluate">
+		INSERT INTO evaluate (
+			id,
+			film_id,
+			evaluate_people,
+			content,
+			create_date
+		) VALUES (
+			#{id},
+			#{filmDetail.id},
+			#{account.id},
+			#{content},
+			now()
+		)
+	</insert>
+	
+	<!-- 分页查询评论列表 -->
+	<select id="selEvaluateByPage" parameterType="Evaluate" resultType="Evaluate">
+		SELECT 
+			<include refid="EvaluateColumns"/>
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.del_flag='0'
+		AND a.film_id=#{filmDetail.id}
+		AND a.review_status&lt;&gt;'2'
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 查询评论总条数 -->
+	<select id="selEvaluateCount" parameterType="Evaluate" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.del_flag='0'
+		AND a.film_id=#{filmDetail.id}
+		AND a.review_status&lt;&gt;'2'
+	</select>
+	
+	<!-- 修改审核状态 -->
+	<update id="updReviewStatus" parameterType="evaluate">
+		UPDATE Evaluate
+		SET review_status=#{reviewStatus},update_by=#{updateBy},update_date=now(),remarks=#{remarks}
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 查找评论 -->
+	<select id="selOne" parameterType="String" resultType="Evaluate">
+		SELECT
+			<include refid="EvaluateColumns"/>
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 为评论点赞 -->
+	<update id="likeEvaluation">
+		UPDATE Evaluate
+		SET likes=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 根据条件查询评论 -->
+	<select id="selEvaluateByTerm" parameterType="evaluate" resultType="evaluate">
+		select 
+			<include refid="EvaluateColumns"/>
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.del_flag='0'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="account != null and account != ''">
+			<if test="account.userName != null and account.userName != ''">
+				AND c.userName like concat('%',#{account.userName},'%')
+			</if>
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status=#{reviewStatus}
+		</if>
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 根据条件查询评论数量 -->
+	<select id="selEvaluateCountByTerm" parameterType="evaluate" resultType="int">
+		select 
+			COUNT(*)
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.del_flag='0'
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title like concat('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		<if test="account != null and account != ''">
+			<if test="account.userName != null and account.userName != ''">
+				AND c.userName like concat('%',#{account.userName},'%')
+			</if>
+		</if>
+		<if test="reviewStatus != null and reviewStatus != ''">
+			AND a.review_status=#{reviewStatus}
+		</if>
+	</select>
+	
+	<!-- 查找用户下的所有评论信息 -->
+	<select id="selEvaluateByUser" resultType="Evaluate">
+		SELECT
+			<include refid="EvaluateColumns"/>
+		FROM Evaluate a
+			<include refid="EvaluateJoins"/>
+		WHERE a.evaluate_people=#{0}
+		AND a.del_flag='0'
+	</select>
+</mapper>

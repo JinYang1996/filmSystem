@@ -1,0 +1,231 @@
+.container{
+    width:1030px
+}
+#icon{
+    margin-left:-15px;
+}
+#logo{
+    max-width:150px;
+    margin-top: -15px;
+    margin-left: -15px;
+}
+.right{
+    float:right;
+}
+.left{
+    float:left;
+}
+.dropdown-menu{
+    width:400px;
+}
+.dropdown-menu .one span{
+    width:60px;
+    height:30px;
+    line-height: 30px;
+    padding-left:20px;
+    float:left;
+}
+.dropdown-menu .one span a:hover{
+    color: #f57f31;
+    text-decoration: none;
+}
+.dropdown-menu .one{
+    width:350px;
+    height: 30px;
+    border-bottom: 1px solid #d2d2d2;
+    margin-left: 10px;
+}
+.dropdown-menu .two{
+    width:350px;
+    height: 60px;
+    border-bottom: 1px solid #d2d2d2;
+    margin-left: 10px;
+}
+.dropdown-menu .two .title{
+    line-height: 60px;
+}
+.dropdown-menu .two .two_one{
+    width:300px;
+    height:30px;
+    line-height: 30px;
+}
+.dropdown-menu .two .two_one span{
+    width:60px;
+    padding-left: 20px;
+}
+.dropdown-menu .two .two_one span a:hover{
+    color: #f57f31;
+    text-decoration: none;
+}
+.dropdown-menu .three{
+    width:100px;
+    height: 30px;
+    line-height: 30px;
+    margin-left: 10px;
+}
+.dropdown-menu .three a:hover{
+    color: orangered;
+    text-decoration: none;
+}
+
+/**��������**/
+.content{
+    width:1000px;
+    height:900px;
+    margin:50px auto 0;
+}
+.content_head{
+    height:240px;
+    position:relative;
+}
+.content_head .myinfo{
+    width:500px;
+    height:40px;
+    position:absolute;
+    bottom:0;
+    left:250px;
+    z-index: 1;
+}
+.content_head .myinfo .wal,.mem{
+    width:160px;
+    height:180px;
+}
+.wal_bg,.mem_bg{
+    width:160px;
+    height:80px;
+    display: none;
+}
+.content_head .myinfo .mywallet,.mymember{
+    width:160px;
+    height:80px;
+    line-height: 80px;
+    background-color: #000;
+    opacity:0.4;
+    position:relative;
+    display: block;
+}
+.content_head .myinfo .word a{
+    position:absolute;
+    top:70px;
+    left: 20px;
+    color:#fff;
+    z-index: 2;
+}
+.content_head .myinfo .memword a{
+    position:absolute;
+    top:70px;
+    left: 205px;
+    color:#fff;
+}
+.content_head .myinfo .wallet,.content_head .myinfo .member{
+    width:160px;
+    height:40px;
+    line-height: 40px;
+    text-align: center;
+    display:block;
+    margin:0;
+}
+.content_head .myinfo span a{
+    color: #fff;
+}
+.content_head .myinfo span a:hover{
+    text-decoration: none;
+    cursor:pointer;
+}
+.content_head .head_bottom{
+    width:1000px;
+    height: 40px;
+    background-color: #040404;
+    opacity: 0.6;
+    position:absolute;
+    bottom:0;
+    left:0;
+}
+.glyphicon-chevron-down{
+    color:#fff;
+}
+.per_picture{
+    width:220px;
+    height:200px;
+    position:absolute;
+    top:30px;
+    left:0;
+    z-index: 1;
+}
+.img-thumbnail{
+    position:absolute;
+    bottom:0;
+    left:50px;
+}
+.per_name{
+    width:250px;
+    height:30px;
+    line-height: 30px;
+    font-size: 20px;
+    display: block;
+    margin:50px 0 0 230px;
+}
+.per_name a{
+    color: #fff;
+}
+.per_whole{
+    width:1000px;
+    margin-top: 5px;
+}
+.list_func{
+    width:130px;
+    height:600px;
+    border:1px solid #71c2ff;
+    background-color: #ffffdd;
+}
+.list_func ul li{
+    width:128px;
+    height:30px;
+    line-height: 30px;
+    text-align: center;
+    margin-top:3px;
+}
+.list_func ul li a{
+    width:130px;
+    height:30px;
+    line-height: 30px;
+    display: block;
+    color: #ff8441;
+}
+.list_func ul li a:hover{
+    color:white;
+    background-color: #00aaee;
+}
+.per_detail{
+    width:863px;
+    height:600px;
+    margin-left: 4px;
+}
+.sbtn{
+    width:100px;
+    height:40px;
+    font-size: 20px;
+    margin-right:5px;
+    color:#000;
+    font-weight: bold;
+}
+.bread{
+    width:863px;
+    height:30px;
+    background-color: #a5a5a5;
+    margin-left: 134px;
+    opacity: 0.8;
+}
+.bread li{
+    width:80px;
+    height:30px;
+    line-height: 30px;
+    float:left;
+    text-align: center;
+    border-right: 1px solid #f7dbe1;
+    transform:skew(-10deg);
+    color:#fff;
+}
+.bread li a{
+    color:#fff;
+}

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.videoHall.mapper.VideoHallMapper">
+	<sql id="videoHallColumns">
+		a.id AS "id",
+		a.hall_name AS "hallName",
+		a.hall_row AS "hallRow",
+		a.hall_col AS "hallCol",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="videoHall">
+		SELECT
+			<include refid="videoHallColumns"/>
+		FROM video_hall a
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="videoHall">
+		SELECT 
+			<include refid="videoHallColumns"/>
+		FROM video_hall a
+		WHERE  a.del_flag='0'
+	</select>
+	
+	<select id="selPageHall" resultType="videoHall">
+		SELECT 
+			<include refid="videoHallColumns"/>
+		FROM video_hall a limit #{0},#{1}
+	</select>
+	
+	<select id="selAllCount" resultType="int">
+		SELECT count(*) FROM video_hall WHERE del_flag='0'
+	</select>
+	
+	<insert id="insert" parameterType="videoHall">
+		INSERT INTO video_hall (
+			id,
+			hall_name,
+			hall_row,
+			hall_col,
+			create_by,
+			create_date,
+			remarks
+		)VALUES (
+			#{id},
+			#{hallName},
+			#{hallRow},
+			#{hallCol},
+			#{createBy},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update" parameterType="videoHall">
+		UPDATE video_hall 
+		<set>
+			<if test="hallName != null and hallName != ''">
+				hall_name=#{hallName},
+			</if>
+			<if test="hallRow != null and hallRow != ''">
+				hall_row=#{hallRow},
+			</if>
+			<if test="hallCol != null and hallCol != ''">
+				hall_col=#{hallCol}
+			</if>
+		</set>
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 根据影院名称查询是否存在 -->
+	<select id="selHallName" parameterType="String" resultType="int">
+		SELECT count(1) FROM video_hall WHERE hall_name=#{hallName} AND del_flag='0'
+	</select>
+	
+	<!-- 根据影院名称查询是否存在 -->
+	<select id="selHallForName" parameterType="String" resultType="VideoHall">
+		SELECT 
+			<include refid="videoHallColumns"/>
+		FROM video_hall a WHERE a.hall_name=#{hallName} AND a.del_flag='0'
+	</select>
+	
+	<!-- 删除影厅信息 -->
+	<update id="updateVideoHallDel">
+		UPDATE video_hall 
+		SET del_flag='1',update_by=#{1},update_date=now()
+		WHERE id=#{0}
+	</update>
+</mapper>

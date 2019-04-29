@@ -1,0 +1,90 @@
+#logo{
+    max-width: 115px;
+    margin-top: -14px;
+}
+#adv{
+    background: url("../../../image/search.jpg");
+    height:250px;
+    margin-top: 50px;
+}
+#adv h1{
+    font-family: 'Yesteryear', cursive;
+    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.8),-2px -2px 1px rgba(0, 0, 0, 0.3),-3px -3px 1px rgba(0, 0, 0, 0.3);
+    margin-left: 100px;
+    margin-bottom: 80px;
+}
+#adv h1{
+    -webkit-box-reflect: below 1px
+    -webkit-gradient(linear, 0 0, 0 100%, from(transparent),to(rgba(0,0,0,1)));
+}
+#adv p{
+    font-family: 'Yesteryear', cursive;
+    text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.8),-2px -2px 1px rgba(0, 0, 0, 0.3);
+    margin-left: 280px;
+}
+.left{
+    width:70%;
+    float:left;
+}
+.right{
+    width:25%;
+    float:right;
+}
+#information .media{
+    border-bottom: 1px solid #cccccc;
+}
+#information .media-left{
+    position:relative;
+}
+#information .media-left div{
+    position:absolute;
+    top: 0;
+    left:0;
+    width:80px;
+    height:20px;
+    line-height: 20px;
+    background-color: #e8270f;
+    font-weight: bold;
+    color:#fff;
+    text-align: center;
+    border-radius: 15px;
+}
+#information .media .media-body h2{
+    font-size: 28px;
+    line-height: 40px;
+    font-weight: bold;
+}
+#information .media .media-body h3{
+    font-size: 20px;
+    line-height:30px;
+}
+#information ul li{
+    line-height: 35px;
+}
+#information .mark{
+    width:50px;
+    height:30px;
+    line-height: 30px;
+    border:1px solid #458b00;
+    padding:5px;
+    margin-top: 15px;
+    border-radius: 5px;
+    color: #62c400;
+}
+#information .buy div span{
+    width:100px;
+    height:30px;
+    line-height: 40px;
+    font-size: 18px;
+    margin-left: 5px;
+}
+#information .buy div span a{
+    color:#ffffff;
+}
+#information .buy div span a:hover{
+    color: #fffe78;
+    text-decoration: none;
+}
+.caption h3{
+    text-align: center;
+}

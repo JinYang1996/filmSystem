@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.theaterArrange.mapper.TheaterArrangeMapper">
+	<sql id="theaterArrangeColumns">
+		a.id AS "id",
+		a.release_time AS "releaseTime",
+		a.start_time AS "startTime",
+		a.end_time AS "endTime",
+		a.video_hall AS "videoHall.id",
+		b.hall_name AS "videoHall.hallName",
+		b.hall_row AS "videoHall.hallRow",
+		b.hall_col AS "videoHall.hallCol",
+		a.coupon_id AS "coupon.id",
+		c.coupon_name AS "coupon.couponName",
+		c.coupon_price AS "coupon.couponPrice",
+		a.film_id AS "filmDetail.id",
+		d.title AS "filmDetail.title",
+		d.language AS "filmDetail.language",
+		d.film_length AS "filmDetail.filmLength",
+		d.price AS "filmDetail.price",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="theaterArrangeJoins">
+		LEFT JOIN video_hall b ON a.video_hall=b.id
+		LEFT JOIN coupon c ON a.coupon_id=c.id
+		LEFT JOIN film_detail d ON a.film_id=d.id
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="TheaterArrange">
+		SELECT
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.del_flag='0'
+		ORDER BY a.create_date desc
+	</select>
+	
+	<!-- <update id="updateDelFlag" parameterType="TheaterArrange">
+		UPDATE theaterArrange SET del_flag=#{delFlag} WHERE id=#{id}
+	</update> -->
+	
+	<select id="selFilmId" parameterType="TheaterArrange" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.film_id=#{filmDetail.id}
+	</select>
+	
+	<select id="selTypeName" parameterType="String" resultType="String">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.type_name=#{0}
+	</select>
+	
+	<!-- 根据影厅号查找影院安排信息 -->
+	<select id="selByHallId" parameterType="TheaterArrange" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.video_hall=#{videoHall.id}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 根据电影id查找影院安排列表 -->
+	<select id="selByFilmId" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.film_id=#{0}
+		AND a.release_time=#{1}
+		AND a.del_flag='0'
+		ORDER BY a.start_time
+	</select>
+	
+	<!-- 将放映前两小时的上映安排del_flag全部置为  "2"  -->
+	<update id="updBeforeToday">
+		UPDATE theater_arrange 
+		SET del_flag='2',remarks=#{0},update_date=now()
+		WHERE date_sub(DATE_FORMAT(concat(release_time," ",start_time),'%Y-%m-%d %H:%i:%s'),interval 2 hour) &lt; now()
+		AND del_flag='0'
+	</update>
+	
+	<insert id="insert" parameterType="TheaterArrange">
+		INSERT INTO theater_arrange (
+			id,
+			release_time,
+			start_time,
+			end_time,
+			video_hall,
+			coupon_id,
+			film_id,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{releaseTime},
+			#{startTime},
+			#{endTime},
+			#{videoHall.id},
+			#{coupon.id},
+			#{filmDetail.id},
+			#{createBy},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update" parameterType="TheaterArrange">
+		
+	</update>
+	
+	<!-- 删除影院安排信息 -->
+	<update id="delArrange" parameterType="String">
+		UPDATE theater_arrange SET
+		del_flag='1'
+		WHERE id=#{0}
+	</update>
+	
+	<!-- 条件查询影厅安排 -->
+	<select id="selArrangeByTerm" parameterType="TheaterArrange" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.del_flag='0'
+			<if test="releaseTime != null and releaseTime != ''">
+				AND a.release_time LIKE CONCAT(date_format(#{releaseTime},'%Y-%m-%d'),'%')
+			</if>
+			<if test="videoHall != null and videoHall != ''">
+				<if test="videoHall.id != null and videoHall.id != ''">
+					AND a.video_hall=#{videoHall.id}
+				</if>
+			</if>
+			<if test="filmDetail != null and filmDetail != ''">
+				<if test="filmDetail.title != null and filmDetail.title != ''">
+					AND d.title LIKE CONCAT('%',#{filmDetail.title},'%')
+				</if>
+			</if>
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 条件查询条数 -->
+	<select id="selTermCount" parameterType="TheaterArrange" resultType="int">
+		SELECT 
+			count(*)
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.del_flag='0'
+			<if test="releaseTime != null and releaseTime != ''">
+				AND a.release_time LIKE CONCAT(date_format(#{releaseTime},'%Y-%m-%d'),'%')
+			</if>
+			<if test="videoHall != null and videoHall != ''">
+				<if test="videoHall.id != null and videoHall.id != ''">
+					AND a.video_hall=#{videoHall.id}
+				</if>
+			</if>
+			<if test="filmDetail != null and filmDetail != ''">
+				<if test="filmDetail.title != null and filmDetail.title != ''">
+					AND d.title LIKE CONCAT('%',#{filmDetail.title},'%')
+				</if>
+			</if>
+	</select>
+	
+	<!-- 超级管理员条件查询影厅安排 -->
+	<select id="selArrangeByTermSuper" parameterType="TheaterArrange" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE (a.del_flag='0'
+			<if test="releaseTime != null and releaseTime != ''">
+				AND a.release_time LIKE CONCAT(date_format(#{releaseTime},'%Y-%m-%d'),'%')
+			</if>
+			<if test="videoHall != null and videoHall != ''">
+				<if test="videoHall.id != null and videoHall.id != ''">
+					AND a.video_hall=#{videoHall.id}
+				</if>
+			</if>
+			<if test="filmDetail != null and filmDetail != ''">
+				<if test="filmDetail.title != null and filmDetail.title != ''">
+					AND d.title LIKE CONCAT('%',#{filmDetail.title},'%')
+				</if>
+			</if>
+		) OR (a.del_flag='2'
+			<if test="releaseTime != null and releaseTime != ''">
+				AND a.release_time LIKE CONCAT(date_format(#{releaseTime},'%Y-%m-%d'),'%')
+			</if>
+			<if test="videoHall != null and videoHall != ''">
+				<if test="videoHall.id != null and videoHall.id != ''">
+					AND a.video_hall=#{videoHall.id}
+				</if>
+			</if>
+			<if test="filmDetail != null and filmDetail != ''">
+				<if test="filmDetail.title != null and filmDetail.title != ''">
+					AND d.title LIKE CONCAT('%',#{filmDetail.title},'%')
+				</if>
+			</if>)
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 超级管理员条件查询条数 -->
+	<select id="selTermCountSuper" parameterType="TheaterArrange" resultType="int">
+		SELECT 
+			count(*)
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE (a.del_flag='0'
+			<if test="releaseTime != null and releaseTime != ''">
+				AND a.release_time LIKE CONCAT(date_format(#{releaseTime},'%Y-%m-%d'),'%')
+			</if>
+			<if test="videoHall != null and videoHall != ''">
+				<if test="videoHall.id != null and videoHall.id != ''">
+					AND a.video_hall=#{videoHall.id}
+				</if>
+			</if>
+			<if test="filmDetail != null and filmDetail != ''">
+				<if test="filmDetail.title != null and filmDetail.title != ''">
+					AND d.title LIKE CONCAT('%',#{filmDetail.title},'%')
+				</if>
+			</if>
+		) OR (a.del_flag='2'
+			<if test="releaseTime != null and releaseTime != ''">
+				AND a.release_time LIKE CONCAT(date_format(#{releaseTime},'%Y-%m-%d'),'%')
+			</if>
+			<if test="videoHall != null and videoHall != ''">
+				<if test="videoHall.id != null and videoHall.id != ''">
+					AND a.video_hall=#{videoHall.id}
+				</if>
+			</if>
+			<if test="filmDetail != null and filmDetail != ''">
+				<if test="filmDetail.title != null and filmDetail.title != ''">
+					AND d.title LIKE CONCAT('%',#{filmDetail.title},'%')
+				</if>
+			</if>)
+	</select>
+	
+	<!-- 修改del_flag -->
+	<update id="updDelFlag">
+		UPDATE theater_arrange
+		SET del_flag=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<update id="updRemarks">
+		UPDATE theater_arrange
+		SET remarks=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 根据优惠券id查找放映安排 -->
+	<select id="selArrangeByCoupon" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.coupon_id=#{0}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 查询影片是否有放映安排 -->
+	<select id="selArrangeByFilm" resultType="TheaterArrange">
+		SELECT 
+			<include refid="theaterArrangeColumns"/>
+		FROM theater_arrange a
+			<include refid="theaterArrangeJoins"/>
+		WHERE a.film_id=#{0}
+		AND a.del_flag='0'
+	</select>
+</mapper>

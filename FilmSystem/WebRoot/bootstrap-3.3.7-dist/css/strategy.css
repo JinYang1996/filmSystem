@@ -1,0 +1,16 @@
+#logo{
+    max-width: 115px;
+    margin-top: -14px;
+}
+#adv{
+    margin-top: 50px;
+    background: url("../../../image/4264vf18111747.jpg");
+    padding-left: 50px;
+    line-height:60px;
+}
+.strategy .container{
+    height:30px;
+}
+.strategy .container .caption h4,.strategy .container .caption p{
+    text-align: center;
+}

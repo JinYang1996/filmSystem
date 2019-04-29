@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.front.filmDetail.mapper.FilmDetailMapper">
+	<sql id="FilmDetailColumns">
+		a.id AS "id",
+		a.release_year AS "releaseYear",
+		a.picture AS "picture",
+		a.giant_screen AS "giantScreen",
+		a.title AS "title",
+		a.direct AS "direct",
+		a.screenwriter AS "screenWriter",
+		a.leading_role AS "leadingRole",
+		a.type AS "type",
+		a.filmmaking_state AS "state",
+		a.language AS "language",
+		a.release_date AS "releaseDate",
+		a.film_length AS "filmLength",
+		a.alternate_name AS "alternateName",
+		a.score AS "score",
+		a.evaluation_number AS "evaluationNum",
+		a.brief AS "brief",
+		a.price AS "price",
+		a.sales AS "sales",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="FilmDetail">
+		SELECT
+			<include refid="FilmDetailColumns"/>
+		FROM film_detail a
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="FilmDetail">
+		SELECT 
+			<include refid="FilmDetailColumns"/>
+		FROM film_detail a
+		WHERE a.del_flag='0'
+	</select>
+	
+	<select id="selPageFilm" resultType="FilmDetail">
+		SELECT 
+			<include refid="FilmDetailColumns"/>
+		FROM film_detail a WHERE a.del_flag='0' 
+		ORDER BY a.create_date desc 
+		limit #{0},#{1}
+	</select>
+	
+	<select id="selAllCount" resultType="int">
+		SELECT count(*) FROM film_detail a
+		WHERE a.del_flag='0'
+	</select>
+	
+	<!-- 根据电影名查询是否存在 -->
+	<select id="selFilmByTitle" parameterType="String" resultType="int">
+		SELECT count(1) FROM film_detail a WHERE a.title=#{title} and a.del_flag='0'
+	</select>
+	
+	<insert id="insert" parameterType="FilmDetail">
+		INSERT INTO film_detail (
+			release_year,
+			picture,
+			title,
+			direct,
+			screenwriter,
+			leading_role,
+			type,
+			filmmaking_state,
+			language,
+			release_date,
+			film_length,
+			alternate_name,
+			score,
+			evaluation_number,
+			brief,
+			price,
+			create_by,
+			create_date
+		)VALUES (
+			#{releaseYear},
+			#{picture},
+			#{title},
+			#{direct},
+			#{screenWriter},
+			#{leadingRole},
+			#{type},
+			#{state},
+			#{language},
+			#{releaseDate},
+			#{filmLength},
+			#{alternateName},
+			#{score},
+			#{evaluationNum},
+			#{brief},
+			#{price},
+			#{createBy},
+			now()
+		)
+	</insert>
+	
+	<update id="update" parameterType="FilmDetail">
+		UPDATE film_detail
+		<set>
+			<if test="score != null and score != ''">	
+				score=#{score},
+			</if>
+			<if test="brief != null and brief != ''">
+				brief=#{brief},
+			</if>
+			update_by=#{updateBy},
+			update_date=now()
+		</set>
+		WHERE title=#{title}
+	</update>
+	
+	<!-- 修改电影价格 -->
+	<update id="updatePrice">
+		UPDATE film_detail 
+		SET price=#{0},update_by=#{2},update_date=now()
+		WHERE id=#{1}
+	</update>
+	
+	<delete id="delAll">
+		DELETE FROM film_detail WHERE giant_screen is null
+	</delete>
+	
+	<!-- 评分排行 -->
+	<select id="selFilmByScore" resultType="filmDetail">
+		SELECT 
+			<include refid="FilmDetailColumns"/>
+		FROM film_detail a
+		WHERE a.del_flag='0'
+		ORDER BY a.score desc
+		LIMIT 0,10
+	</select>
+	
+	<!-- 修改del_flag状态 -->
+	<update id="updDelFlag">
+		UPDATE film_detail
+		SET del_flag=#{0},update_by=#{2},update_date=now()
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 条件查询 -->
+	<select id="selByFilm" parameterType="FilmDetail" resultType="FilmDetail">
+		SELECT 
+			<include refid="FilmDetailColumns"/>
+		FROM film_detail a
+		WHERE
+			a.del_flag='0'
+			<if test="title != null and title != ''">
+				AND a.title LIKE concat('%',#{title},'%')
+			</if>
+			<if test="releaseDate != null and releaseDate != ''">
+				AND a.release_date LIKE concat('%',#{releaseDate},'%')
+			</if>
+			<if test="direct != null and direct != ''">
+				AND a.direct LIKE concat('%',#{direct},'%')
+			</if>
+			<if test="leadingRole != null and leadingRole != ''">
+				AND a.leading_role LIKE concat('%',#{leadingRole},'%')
+			</if>
+			<if test="type != null and type != ''">
+				AND a.type LIKE concat('%',#{type},'%')
+			</if>
+			<if test="language != null and language != ''">
+				AND a.language LIKE concat('%',#{language},'%')
+			</if>
+			<if test="state != null and state != ''">
+				AND a.filmmaking_state LIKE concat('%',#{state},'%')
+			</if>
+		ORDER BY create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 条件查询总条数 -->
+	<select id="selPageCount" parameterType="FilmDetail" resultType="int">
+		SELECT 
+			count(*)
+		FROM film_detail a
+		WHERE
+			a.del_flag='0'
+			<if test="title != null and title != ''">
+				AND title LIKE concat('%',#{title},'%')
+			</if>
+			<if test="releaseDate != null and releaseDate != ''">
+				AND release_date LIKE concat('%',#{releaseDate},'%')
+			</if>
+			<if test="direct != null and direct != ''">
+				AND direct LIKE concat('%',#{direct},'%')
+			</if>
+			<if test="leadingRole != null and leadingRole != ''">
+				AND leading_role LIKE concat('%',#{leadingRole},'%')
+			</if>
+			<if test="type != null and type != ''">
+				AND type LIKE concat('%',#{type},'%')
+			</if>
+			<if test="language != null and language != ''">
+				AND language LIKE concat('%',#{language},'%')
+			</if>
+	</select>
+	
+	<!-- 更新销量 -->
+	<update id="updateSales">
+		UPDATE film_detail
+		SET sales=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 根据销量排行查询影片 -->
+	<select id="selFilmBySales" resultType="FilmDetail">
+		SELECT 
+			<include refid="FilmDetailColumns"/>
+		FROM film_detail a
+		WHERE a.del_flag='0'
+		ORDER BY a.sales DESC
+	</select>
+	
+</mapper>

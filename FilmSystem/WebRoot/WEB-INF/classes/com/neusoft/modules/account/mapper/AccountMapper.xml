@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.account.mapper.AccountMapper">
+	<sql id="AccountColumns">
+		a.id AS "id",
+		a.account AS "account",
+		a.username AS "userName",
+		a.pwd AS "pwd",
+		a.truename AS "trueName",
+		a.email AS "email",
+		a.phone AS "phone",
+		a.photo AS "photo",
+		a.sex AS "sex",
+		a.birthday AS "birthday",
+		a.security_question AS "securityQu",
+		a.security_answer AS "securityAnswer",
+		a.roleid AS "role.id",
+		a.is_member AS "isMember",
+		a.integral AS "integral",
+		a.last_login AS "lastLogin",
+		a.login_date AS "loginDate",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks"
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="Account">
+		SELECT
+			<include refid="AccountColumns"/>
+		FROM account a
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="Account">
+		SELECT 
+			<include refid="AccountColumns"/>
+		FROM account a
+		WHERE a.del_flag='0'
+	</select>
+	
+	<insert id="insert" parameterType="Account">
+		INSERT INTO account (
+			id,
+			account,
+			username,
+			pwd,
+			phone,
+			photo,
+			roleid,
+			is_member,
+			integral,
+			login_date,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{account},
+			#{userName},
+			#{pwd},
+			#{phone},
+			#{photo},
+			#{role.id},
+			#{isMember},
+			#{integral},
+			now(),
+			#{createBy},
+			#{createDate},
+			#{remarks}
+		);
+	</insert>
+	
+	<update id="update" parameterType="Account">
+		UPDATE account SET 
+			<if test="trueName != null and trueName != ''">
+				truename=#{trueName},
+			</if>
+			<if test="email != null and email != ''">
+				email=#{email},
+			</if>
+			<if test="sex != null and sex != ''">
+				sex=#{sex},
+			</if>
+			<if test="birthday != null and birthday != ''">
+				birthday=#{birthday},
+			</if>
+			<if test="securityQu != null and securityQu != ''">
+				security_question=#{securityQu},
+			</if>
+			<if test="securityAnswer != null and securityAnswer != ''">
+				security_answer=#{securityAnswer},
+			</if>
+			<if test="isMember != null and isMember != ''">
+				is_member=#{isMember},
+			</if>
+			<if test="integral != null and integral != ''">
+				integral=#{integral},
+			</if>
+			<if test="integral != null and integral != ''">
+				integral=#{integral},
+			</if>
+			<if test="delFlag != null and delFlag != ''">
+				del_flag=#{delFlag},
+			</if>
+			update_by=#{updateBy},
+			update_date=now()
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 根据用户名查询账户信息 -->
+	<select id="selAccoutByUserName" parameterType="String" resultType="Account">
+		SELECT
+			<include refid="AccountColumns"/>
+		FROM account a
+		WHERE a.username = #{userName}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 更新账号积分 -->
+	<update id="updIntegral">
+		UPDATE account 
+		SET integral=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 根据用户名修改密码 -->
+	<update id="updPwdByUserName">
+		UPDATE account
+		SET pwd=#{0}
+		WHERE username=#{1}
+	</update>
+	
+	<!-- 修改会员状态 -->
+	<update id="updMember">
+		UPDATE account
+		SET is_member=#{0},integral=#{2}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 记录登录状态 -->
+	<update id="updLoginDate">
+		UPDATE account
+		SET login_date=now()
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 记录上次登录时间 -->
+	<update id="updLastLogin">
+		UPDATE account
+		SET last_login=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<!-- 根据条件查询所有用户信息 -->
+	<select id="selAccountByTerm" parameterType="Account" resultType="Account">
+		SELECT
+			<include refid="AccountColumns"/>
+		FROM account a
+		WHERE a.del_flag='0'
+		AND a.roleid=#{role.id}
+		<if test="userName != null and userName != ''">
+			AND a.username like concat('%',#{userName},'%')
+		</if>
+		<if test="trueName != null and trueName != ''">
+			AND a.truename like concat('%',#{trueName},'%')
+		</if>
+		<if test="phone != null and phone != ''">
+			AND a.phone=#{phone}
+		</if>
+		<if test="isMember != null and isMember != ''">
+			AND a.is_member=#{isMember}
+		</if>
+		<if test="lastLogin != null and lastLogin != ''">
+			AND a.last_login LIKE CONCAT(date_format(#{lastLogin},'%Y-%m-%d'),'%')
+		</if>
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 根据条件查询出用户的数量 -->
+	<select id="selCountByTerm" parameterType="Account" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM account a
+		WHERE a.del_flag='0'
+		AND a.roleid=#{role.id}
+		<if test="userName != null and userName != ''">
+			AND a.username like concat('%',#{userName},'%')
+		</if>
+		<if test="trueName != null and trueName != ''">
+			AND a.truename like concat('%',#{trueName},'%')
+		</if>
+		<if test="phone != null and phone != ''">
+			AND a.phone=#{phone}
+		</if>
+		<if test="isMember != null and isMember != ''">
+			AND a.is_member=#{isMember}
+		</if>
+		<if test="lastLogin != null and lastLogin != ''">
+			AND a.last_login LIKE CONCAT(date_format(#{lastLogin},'%Y-%m-%d'),'%')
+		</if>
+	</select>
+	
+	<!-- 超级管理员根据条件查询所有用户信息 -->
+	<select id="selAccountByTermSuper" parameterType="Account" resultType="Account">
+		SELECT
+			<include refid="AccountColumns"/>
+		FROM account a
+		WHERE a.del_flag='0'
+		AND a.roleid IN ('1','2')
+		<if test="userName != null and userName != ''">
+			AND a.username like concat('%',#{userName},'%')
+		</if>
+		<if test="trueName != null and trueName != ''">
+			AND a.truename like concat('%',#{trueName},'%')
+		</if>
+		<if test="phone != null and phone != ''">
+			AND a.phone=#{phone}
+		</if>
+		<if test="isMember != null and isMember != ''">
+			AND a.is_member=#{isMember}
+		</if>
+		<if test="lastLogin != null and lastLogin != ''">
+			AND a.last_login LIKE CONCAT(date_format(#{lastLogin},'%Y-%m-%d'),'%')
+		</if>
+		ORDER BY a.create_date desc
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 超级管理员根据条件查询出用户的数量 -->
+	<select id="selCountByTermSuper" parameterType="Account" resultType="int">
+		SELECT
+			COUNT(*)
+		FROM account a
+		WHERE a.del_flag='0'
+		AND a.roleid IN ('1','2')
+		<if test="userName != null and userName != ''">
+			AND a.username like concat('%',#{userName},'%')
+		</if>
+		<if test="trueName != null and trueName != ''">
+			AND a.truename like concat('%',#{trueName},'%')
+		</if>
+		<if test="phone != null and phone != ''">
+			AND a.phone=#{phone}
+		</if>
+		<if test="isMember != null and isMember != ''">
+			AND a.is_member=#{isMember}
+		</if>
+		<if test="lastLogin != null and lastLogin != ''">
+			AND a.last_login LIKE CONCAT(date_format(#{lastLogin},'%Y-%m-%d'),'%')
+		</if>
+	</select>
+	
+	<!-- 添加管理员 -->
+	<insert id="insertAdmin" parameterType="account">
+		INSERT INTO account (
+			id,
+			account,
+			username,
+			pwd,
+			truename,
+			email,
+			phone,
+			photo,
+			sex,
+			birthday,
+			roleid,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{account},
+			#{userName},
+			#{pwd},
+			#{trueName},
+			#{email},
+			#{phone},
+			#{photo},
+			#{sex},
+			#{birthday},
+			#{role.id},
+			#{createBy},
+			#{createDate},
+			#{remarks}
+		);
+	</insert>
+	
+	<!-- 删除用户信息 -->
+	<update id="updAccountDel">
+		UPDATE account
+		SET del_flag='1',update_by=#{1},update_date=now()
+		WHERE id=#{0}
+	</update>
+	
+	<!-- 超级管理员修改信息 -->
+	<update id="updateBySuper" parameterType="Account">
+		UPDATE account SET 
+			<if test="pwd != null and pwd != ''">
+				pwd=#{pwd},
+			</if>
+			<if test="trueName != null and trueName != ''">
+				truename=#{trueName},
+			</if>
+			<if test="email != null and email != ''">
+				email=#{email},
+			</if>
+			<if test="phone != null and phone != ''">
+				phone=#{phone},
+			</if>
+			<if test="sex != null and sex != ''">
+				sex=#{sex},
+			</if>
+			<if test="remarks != null and remarks != ''">
+				remarks=#{remarks}
+			</if>
+			update_by=#{updateBy},
+			update_date=now()
+		WHERE id=#{id}
+	</update>
+	
+	<!-- 查询管理员用户 -->
+	<select id="selAdmin" resultType="account">
+		SELECT 
+			<include refid="AccountColumns"/>
+		FROM account a  
+		WHERE a.roleid in ('2','3')
+	</select>
+</mapper>

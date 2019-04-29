@@ -1,0 +1,17 @@
+#logo{
+    max-width: 115px;
+    margin-top: -14px;
+}
+.adv{
+    margin-top: 50px;
+}
+#menu-center{
+     text-align: center;
+}
+#menu-center h2{
+    color:#269abc;
+}
+.media-body h4{
+    color:#101010;
+    font-weight: bold;
+}

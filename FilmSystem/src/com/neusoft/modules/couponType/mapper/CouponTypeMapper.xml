@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.couponType.mapper.CouponTypeMapper">
+	<sql id="couponTypeColumns">
+		a.id AS "id",
+		a.type_name AS "typeName",
+		a.film_id AS "filmDetail.id",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="CouponType">
+		SELECT
+			<include refid="couponTypeColumns"/>
+		FROM coupon_type a
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="selAll" resultType="CouponType">
+		SELECT 
+			<include refid="couponTypeColumns"/>
+		FROM coupon_type a
+	</select>
+	
+	<!-- <update id="updateDelFlag" parameterType="CouponType">
+		UPDATE couponType SET del_flag=#{delFlag} WHERE id=#{id}
+	</update> -->
+	
+	<select id="selFilmId" parameterType="CouponType" resultType="CouponType">
+		SELECT 
+			<include refid="couponTypeColumns"/>
+		FROM coupon_type a
+		WHERE a.film_id=#{filmDetail.id}
+	</select>
+	
+	<select id="selTypeName" parameterType="String" resultType="String">
+		SELECT 
+			<include refid="couponTypeColumns"/>
+		FROM coupon_type a
+		WHERE a.type_name=#{0}
+	</select>
+	
+	<insert id="insert" parameterType="CouponType">
+		INSERT INTO coupon_type (
+			id,
+			CouponType_row,
+			CouponType_number,
+			hall_id,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{CouponTypeRow},
+			#{CouponTypeNumber},
+			#{videoHall.id},
+			#{createBy},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update" parameterType="CouponType">
+		UPDATE coupon_type SET 
+			CouponType=#{CouponType},
+			pwd=#{pwd},
+			name=#{name},
+			email=#{email},
+			phone=#{phone},
+			photo=#{photo},
+			sex=#{sex},
+			birthday=#{birthday},
+			security_question=#{securityQu},
+			securtiy_answer=#{securityAnswer},
+			is_member=#{isMember},
+			integral=#{integral},
+			update_by=#{updateBy},
+			update_date=#{updateDate},
+			del_flag=#{delFlag}
+	</update>
+	
+</mapper>

@@ -1,0 +1,33 @@
+.all{
+	width:1300px;
+	margin:0 auto;
+	font-family: Verdana, Geneva, sans-serif;
+	font-size:22px;
+	font-weight:bold;
+}
+.left{
+	float:left;
+}
+.right{
+	float:right;
+}
+.head{
+	height:145px;
+	border:1px solid red;
+	margin:0 auto;
+}
+.left_list{
+	width:195px;
+	height:500px;
+	border:1px solid blue;
+}
+.left_list ul{
+	list-style:none;
+}
+.left_list ul li a{
+	text-decoration:none;
+}
+.inul{
+	padding:0;
+	display: none;
+}

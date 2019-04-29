@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.message.mapper.MessageMapper">
+	<sql id="MessageColumns">
+		a.id AS "id",
+		a.sender AS "sender",
+		a.receiver AS "receiver",
+		a.content AS "content",
+		a.is_read AS "isRead",
+		a.create_date AS "createDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="MessageJoins">
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="Message">
+		SELECT
+			<include refid="MessageColumns"/>
+		FROM Message a
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="Message">
+		SELECT 
+			<include refid="MessageColumns"/>
+		FROM Message a
+		WHERE a.del_flag='0'
+		order by a.create_date
+	</select>
+	
+	<insert id="insert" parameterType="Message">
+		INSERT INTO message (
+			id,
+			sender,
+			receiver,
+			content,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{sender},
+			#{receiver},
+			#{content},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+</mapper>

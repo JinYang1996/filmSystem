@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.coupon.mapper.CouponMapper">
+	<sql id="couponColumns">
+		a.id AS "id",
+		a.coupon_name AS "couponName",
+		a.coupon_price AS "couponPrice",
+		a.type AS "type",
+		a.film_id AS "filmDetail.id",
+		b.title AS "filmDetail.title",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="couponJoins">
+		LEFT JOIN film_detail b ON a.film_id=b.id
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="Coupon">
+		SELECT
+			<include refid="couponColumns"/>
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.id = #{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selAll" resultType="Coupon">
+		SELECT 
+			<include refid="couponColumns"/>
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.del_flag='0'
+	</select>
+	
+	<select id="selType" parameterType="String" resultType="Coupon">
+		SELECT 
+			<include refid="couponColumns"/>
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.type=#{0}
+		AND a.del_flag='0'
+	</select>
+	
+	<select id="selFilmId" parameterType="Coupon" resultType="Coupon">
+		SELECT
+			<include refid="couponColumns"/>
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.film_id=#{filmDetail.id}
+		AND a.del_flag='0'
+	</select>
+	
+	<insert id="insert" parameterType="Coupon">
+		INSERT INTO coupon (
+			id,
+			coupon_name,
+			coupon_price,
+			type,
+			film_id,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{couponName},
+			#{couponPrice},
+			#{type},
+			#{filmDetail.id},
+			#{createBy},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+	<!-- 查询优惠信息 -->
+	<select id="selCouponByTerm" parameterType="Coupon" resultType="Coupon">
+		SELECT 
+			<include refid="couponColumns"/>
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.del_flag='0'
+		<if test="couponName != null and couponName != ''">
+			AND a.coupon_name=#{couponName}
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type=#{type}
+		</if>
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.id != null and filmDetail.id != ''">
+				AND a.film_id=#{filmDetail.id}
+			</if>
+		</if>
+	</select>
+	
+	<!-- 分页查询 -->
+	<select id="selByTerm" parameterType="Coupon" resultType="Coupon">
+		SELECT 
+			<include refid="couponColumns"/>
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.del_flag='0'
+		<if test="couponName != null and couponName != ''">
+			AND a.coupon_name LIKE CONCAT('%',#{couponName},'%')
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type=#{type}
+		</if>
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title LIKE CONCAT('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+		LIMIT #{startRow},#{pageSize}
+	</select>
+	
+	<!-- 分页查询数量 -->
+	<select id="selByTermCount" parameterType="Coupon" resultType="int">
+		SELECT 
+			COUNT(*)
+		FROM coupon a
+			<include refid="couponJoins"/>
+		WHERE a.del_flag='0'
+		<if test="couponName != null and couponName != ''">
+			AND a.coupon_name LIKE CONCAT('%',#{couponName},'%')
+		</if>
+		<if test="type != null and type != ''">
+			AND a.type=#{type}
+		</if>
+		<if test="filmDetail != null and filmDetail != ''">
+			<if test="filmDetail.title != null and filmDetail.title != ''">
+				AND b.title LIKE CONCAT('%',#{filmDetail.title},'%')
+			</if>
+		</if>
+	</select>
+	
+	<!-- 修改delFlag的值 -->
+	<update id="updDelFlag">
+		UPDATE coupon
+		SET del_flag=#{0}
+		WHERE id=#{1}
+	</update>
+	
+	<update id="update" parameterType="Coupon">
+		UPDATE coupon
+		<set>
+			<if test="couponName != null and couponName != ''">
+			 	coupon_name=#{couponName},
+			</if>
+			<if test="couponPrice != null and couponPrice != ''">
+				coupon_price=#{couponPrice},
+			</if>
+			<if test="type != null and type != ''">
+				type=#{type},
+			</if>
+			film_id=#{filmDetail.id},
+			update_by=#{updateBy},
+			update_date=now()
+		</set>
+		WHERE id=#{id}
+	</update>
+</mapper>

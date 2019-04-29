@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC   
+    "-//mybatis.org//DTD Mapper 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.neusoft.modules.seat.mapper.SeatMapper">
+	<sql id="seatColumns">
+		a.id AS "id",
+		a.seat_row AS "seatRow",
+		a.seat_number AS "seatNumber",
+		a.hall_id AS "videoHall.id",
+		a.create_by AS "createBy",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<select id="get" parameterType="String" resultType="Seat">
+		SELECT
+			<include refid="seatColumns"/>
+		FROM seat a
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="selAll" resultType="Seat">
+		SELECT 
+			<include refid="seatColumns"/>
+		FROM seat a
+	</select>
+	
+	<!-- 根据放映厅的厅号查找座位信息 -->
+	<select id="selSeatForHall" parameterType="Seat" resultType="Seat">
+		SELECT
+			<include refid="seatColumns"/>
+		FROM seat a
+		WHERE a.hall_id=#{videoHall.id} AND a.del_flag='0'
+	</select>
+	
+	<!-- 根据座位行、列查找座位号是否存在 -->
+	<select id="selRowAndCol" parameterType="Seat" resultType="Seat">
+		SELECT 
+			<include refid="seatColumns"/> 
+		FROM seat a
+		WHERE a.seat_row=#{seatRow} 
+		AND a.seat_number=#{seatNumber}
+		AND a.id=#{id}
+		AND a.del_flag='0'
+	</select>
+	
+	<!-- 根据影厅号、座位行、座位列 查找座位id -->
+	<select id="selSeatByHall" parameterType="String" resultType="Seat">
+		SELECT 
+			<include refid="seatColumns"/> 
+		FROM seat a
+		WHERE a.seat_row=#{0}
+		AND a.seat_number=#{1}
+		AND a.hall_id=#{2}
+		AND a.del_flag='0'
+	</select>
+	
+	<update id="updateDelFlag" parameterType="Seat">
+		UPDATE seat SET del_flag=#{delFlag} WHERE id=#{id}
+	</update>
+	
+	<insert id="insert" parameterType="Seat">
+		INSERT INTO seat (
+			id,
+			seat_row,
+			seat_number,
+			hall_id,
+			create_by,
+			create_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{seatRow},
+			#{seatNumber},
+			#{videoHall.id},
+			#{createBy},
+			now(),
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update" parameterType="Seat">
+		UPDATE seat SET 
+			seat=#{seat},
+			pwd=#{pwd},
+			name=#{name},
+			email=#{email},
+			phone=#{phone},
+			photo=#{photo},
+			sex=#{sex},
+			birthday=#{birthday},
+			security_question=#{securityQu},
+			securtiy_answer=#{securityAnswer},
+			is_member=#{isMember},
+			integral=#{integral},
+			update_by=#{updateBy},
+			update_date=#{updateDate},
+			del_flag=#{delFlag}
+	</update>
+	
+</mapper>
